@@ -22,14 +22,14 @@ typedef struct arista *Tarista; //Tipo Arista
 class Grafo
 {
 private:
-    Tnodo p,nextInsert;//puntero cabeza
+    Tnodo p,current;//puntero cabeza
     int nArcos, nVertices;
 public:
     Grafo();
     ~Grafo();
-    void insertar_nodo(int id, int fobia);
+    void insertar_nodo(int id, int fobia, int *a_guardar[]);
     void agrega_arista(Tnodo &, Tnodo &, Tarista &);
-    void setEdge(int ini, int fin);
+    void setEdge(int ini, int fin, int *ubicaciones[]);
     void vaciar_aristas(Tnodo &);
     void eliminar_nodo(int id);
     void deleteEdge(int inicio, int fin);
@@ -49,7 +49,7 @@ Grafo::Grafo(){
     p = NULL;
     nArcos = 0;
     nVertices = 0;
-    nextInsert = 0;
+    current = 0;
 }
 Grafo::~Grafo(){
     Tnodo aux,next;
@@ -66,7 +66,7 @@ Grafo::~Grafo(){
         aux=next;
     }
 }
-void Grafo::insertar_nodo(int id,int fobia){
+void Grafo::insertar_nodo(int id,int fobia, int *a_guardar[]){
     Tnodo t,nuevo=new struct nodo;
     nuevo->fobia = fobia;
     nuevo->id = id;
@@ -76,15 +76,20 @@ void Grafo::insertar_nodo(int id,int fobia){
 // Verificar si hay nodos
     if(p==NULL){
         p = nuevo;
-        nextInsert = p;
+        current = p;
     }
-// Buscar donde lo podemos insertar
+// Lo Insertamos al final
     else{
-        t = nextInsert;
+        t = current;
         nVertices+=1;
         t->sgte = nuevo;
-        nextInsert = t->sgte;
+        current = t->sgte;
+       
     }
+    a_guardar[id] = (int*)current;
+
+    //Tnodo dato = (nodo*)a_guardar[id];
+    //cout << a_guardar[id] << "|" << dato->id <<  "\n";
 }
 void Grafo::agrega_arista(Tnodo &aux, Tnodo &aux2, Tarista &nuevo){
     Tarista q;
@@ -101,7 +106,7 @@ void Grafo::agrega_arista(Tnodo &aux, Tnodo &aux2, Tarista &nuevo){
     }
     nArcos+=1;
 }
-void Grafo::setEdge(int ini,int fin){
+void Grafo::setEdge(int ini,int fin, int *ubicaciones[]){
     Tarista nuevo=new struct arista;
     Tarista nuevo2=new struct arista;
     Tnodo aux, aux2;
@@ -112,27 +117,10 @@ void Grafo::setEdge(int ini,int fin){
     }
     nuevo->sgte=NULL;
     nuevo2->sgte=NULL;
-    aux=p;
-    aux2=p;
-    int flag1 = 0,flag2 = 0;
-    while(aux2!=NULL && aux!=NULL){
-        if(aux2->id==fin && aux2!=NULL && flag1 != 1){
-            flag1 = 1;
-        }
-        if(aux->id==ini && aux!=NULL && flag2 != 1){
-            flag2 = 1;
-        }
-        if(flag1 == 1 && flag2 == 1){
-            break;
-        }
-        if(flag1 != 1){
-            aux2=aux2->sgte;
-        }
-         if(flag2 != 1){
-            aux=aux->sgte;
-        }
-    }
-   // cout << aux << "|"<< aux2 << "\n";
+
+    aux = (nodo*)ubicaciones[ini];
+    aux2 = (nodo*)ubicaciones[fin];
+
     agrega_arista(aux,aux2, nuevo);
     agrega_arista(aux2,aux, nuevo2);
     
@@ -442,11 +430,12 @@ int main(){
     // Agregar Nodos
     cout << "Agregando nodos"<<"\n";
     i = 1;
+    cout << "hola1 |" << (cantidad_datos+1)*sizeof(int*) << "\n";
+    int **auxiliar_nodos = new int*[cantidad_datos+1]; // Lista auxiliar para agilizar setEdge
+    cout << "hola2" << "\n";
     while(i <= cantidad_datos){
-        
-        
         cin >> aux1;
-        G.insertar_nodo(i,aux1);
+        G.insertar_nodo(i,aux1, auxiliar_nodos);
         i++;
     }
 
@@ -457,14 +446,14 @@ int main(){
     while(i < cantidad_vertices){
         cin >> aux1;
         cin >> aux2;
-        if(i%1000 == 0){
-            cout << i << " de " << cantidad_vertices << "\n";
-        }
-        G.setEdge(aux1,aux2);
+        //if(i%1000 == 0){
+        //    cout << i << " de " << cantidad_vertices << "\n";
+        //}
+        G.setEdge(aux1,aux2, auxiliar_nodos);
         //G.setEdge(aux2,aux1);
         i++;
     }
-   G.mostrar_grafo();
+   //G.mostrar_grafo();
 
     int nodos_visitados = 0;
     int cantidad_comunidades = 0;
@@ -525,7 +514,7 @@ int main(){
         cout << comunidades[i] << '\n';
     }
 
-
+    delete(auxiliar_nodos);
     free(comunidades);
 
 
