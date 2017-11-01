@@ -35,9 +35,9 @@ public:
     void deleteEdge(int inicio, int fin);
     void mostrar_grafo();
     void mostrar_aristas(int var);
-    void setMark(int id, int color);
+    void setMark(int id, int color, int *ubicaciones[]);
     void setFobia(int id, int color);
-    int getMark(int id);
+    int getMark(int id, int *ubicaciones[]);
     int getFobia(int id);
     int nVertex();
     int nEdges();
@@ -62,7 +62,7 @@ Grafo::~Grafo(){
     }
     while(aux!=NULL){
         next = aux->sgte;
-        eliminar_nodo(aux->fobia);
+        eliminar_nodo(aux->id);
         aux=next;
     }
 }
@@ -73,12 +73,12 @@ void Grafo::insertar_nodo(int id,int fobia, int *a_guardar[]){
     nuevo->sgte = NULL;
     nuevo->ady=NULL;
     nuevo->color=-1;
-// Verificar si hay nodos
+    // Verificar si hay nodos
     if(p==NULL){
         p = nuevo;
         current = p;
     }
-// Lo Insertamos al final
+    // Lo Insertamos al final
     else{
         t = current;
         nVertices+=1;
@@ -125,8 +125,7 @@ void Grafo::setEdge(int ini,int fin, int *ubicaciones[]){
     agrega_arista(aux2,aux, nuevo2);
     
 }
-void Grafo::vaciar_aristas(Tnodo &aux)
-{
+void Grafo::vaciar_aristas(Tnodo &aux){
     Tarista q,r;
     q=aux->ady;
     if(q->sgte == NULL){
@@ -228,8 +227,7 @@ void Grafo::mostrar_grafo(){
         cout<<endl;
     }
 }
-void Grafo::mostrar_aristas(int var)
-{
+void Grafo::mostrar_aristas(int var){
     Tnodo aux;
     Tarista ar;
     aux=p;
@@ -258,39 +256,24 @@ void Grafo::mostrar_aristas(int var)
             aux=aux->sgte;
     }
 }
-void Grafo::setMark(int id, int color){
-    Tnodo aux;
-    aux=p;
+void Grafo::setMark(int id, int color, int *ubicaciones[]){
+    //Tnodo aux;
+    //aux=p;
     // Grafo Vacio
     if(p==NULL){
         return;
     }
-    while(aux!=NULL){
-        if(aux->id==id){
-            aux->color = color;
-            return;
-        }
-        else{
-            aux=aux->sgte;
-        }
-    }
+    Tnodo addr = (nodo*)ubicaciones[id];
+    addr->color = color;
+    return;
 }
-int Grafo::getMark(int id){
-    Tnodo aux;
-    aux=p;
+int Grafo::getMark(int id, int *ubicaciones[]){
     // Grafo Vacio
     if(p==NULL){
         return -1;
     }
-    while(aux!=NULL){
-        if(aux->id==id){
-            return aux->color;
-        }
-        else{
-            aux=aux->sgte;
-        }
-    }
-    return -1;
+    Tnodo addr = (nodo*)ubicaciones[id];
+    return addr->color;
 }
 void Grafo::setFobia(int id, int fobia){
     Tnodo aux;
@@ -402,22 +385,22 @@ int Grafo::next(int id, int posicion){
     return nVertex()+1;
 }
 
-void DFS(Grafo *G,int aux1,int *w,int *cvert, int pintura, int* fobias_comunidad){
+void DFS(Grafo *G,int aux1,int *w,int *cvert, int pintura, int* fobias_comunidad, int* auxiliar_nodos[]){
     //cout << "Recibido el elemento "<< aux1 << endl;
     *cvert = 0;
     int cvert2 = 0;
-    if(G->getMark(aux1) == -1){
+    if(G->getMark(aux1,auxiliar_nodos) == -1){
        // cout << aux1 << "?" << G->getFobia(aux1)<<"\n";
         fobias_comunidad[G->getFobia(aux1)]+=1; // Aumentar al contador de fobias
-        G->setMark(aux1, pintura);
+        G->setMark(aux1, pintura, auxiliar_nodos);
     }
         
     
     for(*w= G->first(aux1); *w< G->nVertex()+1; *w = G->next(aux1,*cvert)){
        // cout << "Iterando sobre "<< *w <<endl;
         (*cvert)++; // Aumentamos los elementos recorridos
-        if(G->getMark(*w) == -1){
-             DFS(G,*w, w, &cvert2, pintura, fobias_comunidad);
+        if(G->getMark(*w,auxiliar_nodos) == -1){
+             DFS(G,*w, w, &cvert2, pintura, fobias_comunidad, auxiliar_nodos);
         }
 
     }
@@ -430,9 +413,7 @@ int main(){
     // Agregar Nodos
     cout << "Agregando nodos"<<"\n";
     i = 1;
-    cout << "hola1 |" << (cantidad_datos+1)*sizeof(int*) << "\n";
     int **auxiliar_nodos = new int*[cantidad_datos+1]; // Lista auxiliar para agilizar setEdge
-    cout << "hola2" << "\n";
     while(i <= cantidad_datos){
         cin >> aux1;
         G.insertar_nodo(i,aux1, auxiliar_nodos);
@@ -450,7 +431,6 @@ int main(){
         //    cout << i << " de " << cantidad_vertices << "\n";
         //}
         G.setEdge(aux1,aux2, auxiliar_nodos);
-        //G.setEdge(aux2,aux1);
         i++;
     }
    //G.mostrar_grafo();
@@ -465,7 +445,7 @@ int main(){
     while(nodos_visitados <=cantidad_datos){
         cout << "Buscando nodos no visitados"<<"\n";
         // Buscar Nodo no visitado
-        while(G.getMark(i2) != -1){
+        while(G.getMark(i2,auxiliar_nodos) != -1){
             i2++;
         }
 
@@ -476,7 +456,7 @@ int main(){
        
         int dfs_visits = 0; 
         cout << "Realizando DFS en"<< i2<<"\n";
-        DFS(&G,i2,&w,&dfs_visits,cantidad_comunidades,fobias_comunidad); 
+        DFS(&G,i2,&w,&dfs_visits,cantidad_comunidades,fobias_comunidad,auxiliar_nodos); 
 
         
 
@@ -517,6 +497,7 @@ int main(){
     delete(auxiliar_nodos);
     free(comunidades);
 
+    G.mostrar_grafo();
 
     G.~Grafo();
 
