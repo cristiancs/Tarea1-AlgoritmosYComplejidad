@@ -114,21 +114,30 @@ void Grafo::setEdge(int ini,int fin){
     nuevo2->sgte=NULL;
     aux=p;
     aux2=p;
-    while(aux2!=NULL){
-        if(aux2->id==fin){
+    int flag1 = 0,flag2 = 0;
+    while(aux2!=NULL && aux!=NULL){
+        if(aux2->id==fin && aux2!=NULL && flag1 != 1){
+            flag1 = 1;
+        }
+        if(aux->id==ini && aux!=NULL && flag2 != 1){
+            flag2 = 1;
+        }
+        if(flag1 == 1 && flag2 == 1){
             break;
         }
-        aux2=aux2->sgte;
-    }
-    while(aux!=NULL){
-        if(aux->id==ini){
-            cout << aux << "|"<< aux2 << "\n";
-            agrega_arista(aux,aux2, nuevo);
-            agrega_arista(aux2,aux, nuevo2);
-            return;
+        if(flag1 != 1){
+            aux2=aux2->sgte;
         }
-        aux = aux->sgte;
+         if(flag2 != 1){
+            aux=aux->sgte;
+        }
+
+        
     }
+    cout << aux << "|"<< aux2 << "\n";
+    agrega_arista(aux,aux2, nuevo);
+    agrega_arista(aux2,aux, nuevo2);
+    
 }
 void Grafo::vaciar_aristas(Tnodo &aux)
 {
