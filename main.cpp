@@ -131,10 +131,8 @@ void Grafo::setEdge(int ini,int fin){
          if(flag2 != 1){
             aux=aux->sgte;
         }
-
-        
     }
-    cout << aux << "|"<< aux2 << "\n";
+   // cout << aux << "|"<< aux2 << "\n";
     agrega_arista(aux,aux2, nuevo);
     agrega_arista(aux2,aux, nuevo2);
     
