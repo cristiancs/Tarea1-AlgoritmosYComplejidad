@@ -14,6 +14,7 @@ struct nodo{
 struct arista{
     struct nodo *destino;//puntero al nodo de llegada
     struct arista *sgte;
+    struct arista *final;
 };
 typedef struct nodo *Tnodo;//  Tipo Nodo
 typedef struct arista *Tarista; //Tipo Arista
@@ -90,11 +91,11 @@ void Grafo::agrega_arista(Tnodo &aux, Tnodo &aux2, Tarista &nuevo){
     if(aux->ady==NULL){
         aux->ady=nuevo;
         nuevo->destino=aux2;
+        aux->ady->final = nuevo;
     }
     else{
-        q=aux->ady;
-        while(q->sgte!=NULL)
-            q=q->sgte;
+        q=aux->ady->final;
+
         nuevo->destino=aux2;
         q->sgte=nuevo;
     }
@@ -102,6 +103,7 @@ void Grafo::agrega_arista(Tnodo &aux, Tnodo &aux2, Tarista &nuevo){
 }
 void Grafo::setEdge(int ini,int fin){
     Tarista nuevo=new struct arista;
+    Tarista nuevo2=new struct arista;
     Tnodo aux, aux2;
 
     // Grafo vacio
@@ -109,6 +111,7 @@ void Grafo::setEdge(int ini,int fin){
         return;
     }
     nuevo->sgte=NULL;
+    nuevo2->sgte=NULL;
     aux=p;
     aux2=p;
     while(aux2!=NULL){
@@ -119,7 +122,9 @@ void Grafo::setEdge(int ini,int fin){
     }
     while(aux!=NULL){
         if(aux->id==ini){
+            cout << aux << "|"<< aux2 << "\n";
             agrega_arista(aux,aux2, nuevo);
+            agrega_arista(aux2,aux, nuevo2);
             return;
         }
         aux = aux->sgte;
@@ -431,14 +436,13 @@ int main(){
     cout << "Agregando nodos"<<"\n";
     i = 1;
     while(i <= cantidad_datos){
-        if(i%1000 == 0){
-            cout << i<<'\n';
-        }
+        
         
         cin >> aux1;
         G.insertar_nodo(i,aux1);
         i++;
     }
+
     cout << "Agregando vertices"<<"\n";
     // Agregar Vertices
     cin >> cantidad_vertices;
@@ -446,11 +450,14 @@ int main(){
     while(i < cantidad_vertices){
         cin >> aux1;
         cin >> aux2;
+        if(i%1000 == 0){
+            cout << i << " de " << cantidad_vertices << "\n";
+        }
         G.setEdge(aux1,aux2);
-        G.setEdge(aux2,aux1);
+        //G.setEdge(aux2,aux1);
         i++;
     }
-   // G.mostrar_grafo();
+   G.mostrar_grafo();
 
     int nodos_visitados = 0;
     int cantidad_comunidades = 0;
