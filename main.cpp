@@ -1,6 +1,6 @@
 #include <iostream>
 #include <stdlib.h>     /* malloc, free, rand */
-
+#include <queue>
 using namespace std;
 
 
@@ -10,6 +10,7 @@ struct nodo{
     int color;
     struct nodo *sgte;
     struct arista *ady;//puntero hacia la primera arista del nodo
+    int currentArista;
 };
 struct arista{
     struct nodo *destino;//puntero al nodo de llegada
@@ -36,14 +37,12 @@ public:
     void mostrar_grafo();
     void mostrar_aristas(int var);
     void setMark(int id, int color, int *ubicaciones[]);
-    void setFobia(int id, int color);
     int getMark(int id, int *ubicaciones[]);
-    int getFobia(int id);
+    int getFobia(int id, int *ubicaciones[]);
     int nVertex();
     int nEdges();
-    int getElement(int posicion);
-    int first(int nodo);
-    int next(int nodo, int posicion);
+    int first(int nodo, int *ubicaciones[]);
+    int next(int nodo, int *ubicaciones[]);
 };
 Grafo::Grafo(){
     p = NULL;
@@ -73,6 +72,7 @@ void Grafo::insertar_nodo(int id,int fobia, int *a_guardar[]){
     nuevo->sgte = NULL;
     nuevo->ady=NULL;
     nuevo->color=-1;
+    nuevo->currentArista = 1;
     // Verificar si hay nodos
     if(p==NULL){
         p = nuevo;
@@ -100,7 +100,6 @@ void Grafo::agrega_arista(Tnodo &aux, Tnodo &aux2, Tarista &nuevo){
     }
     else{
         q=aux->ady->final;
-
         nuevo->destino=aux2;
         q->sgte=nuevo;
     }
@@ -275,132 +274,92 @@ int Grafo::getMark(int id, int *ubicaciones[]){
     Tnodo addr = (nodo*)ubicaciones[id];
     return addr->color;
 }
-void Grafo::setFobia(int id, int fobia){
-    Tnodo aux;
-    aux=p;
-    // Grafo Vacio
-    if(p==NULL){
-        return;
-    }
-    while(aux!=NULL){
-        if(aux->id==id){
-            aux->fobia = fobia;
-            return;
-        }
-        else{
-            aux=aux->sgte;
-        }
-    }
+int Grafo::getFobia(int id, int *ubicaciones[]){
+   Tnodo addr = (nodo*)ubicaciones[id];
+    return addr->fobia;
 }
-int Grafo::getFobia(int id){
-    Tnodo aux;
-    aux=p;
-    // Grafo Vacio
-    if(p==NULL){
-        return -1;
-    }
-    while(aux!=NULL){
-        if(aux->id==id){
-            return aux->fobia;
-        }
-        else{
-            aux=aux->sgte;
-        }
-    }
-    return -1;
-}
-int Grafo::getElement(int posicion){
-    Tnodo aux;
-    aux=p;
-    // Grafo Vacio
-    if(p==NULL){
-        return -1;
-    }
-    int i = 0;
-    while(aux!=NULL){
-        if(i == posicion){
-            return aux->fobia;
-        }
-        else{
-            aux=aux->sgte;
-        }
-        i++;
-    }
-    return -1;
-}
+
 int Grafo::nVertex(){
     return nVertices+1;
 }
 int Grafo::nEdges(){
     return nArcos;
 }
-int Grafo::first(int id){
-    Tnodo aux;
-    aux=p;
+int Grafo::first(int id, int *ubicaciones[]){
     // Grafo Vacio
     if(p==NULL){
         return -1;
     }
-    while(aux!=NULL){
-        if(aux->id==id){
-            if(aux->ady == NULL){
-                return nVertex()+1;
-            }
-            return aux->ady->destino->id;
-        }
-        else{
-            aux=aux->sgte;
-        }
+    Tnodo addr = (nodo*)ubicaciones[id];
+    if(addr->ady == NULL){
+         return nVertex()+1;
     }
-    return nVertex()+1;
+    return addr->ady->destino->id;
+
 }
-int Grafo::next(int id, int posicion){
+int Grafo::next(int id, int *ubicaciones[]){
     Tnodo aux;
     Tarista ar;
-    aux=p;
-    // cout << "Solicitada posición "<< posicion << endl;
     // Grafo Vacio
     if(p==NULL){
         return -1;
     }
-    while(aux!=NULL){
-        if(aux->id==id){
-            ar=aux->ady;
-            int i = 1;
-            //cout << "Interacion"<<endl;
-            while(ar!=NULL){
-                //	cout << i << posicion << endl;
-                if(i == posicion){
-                    return ar->destino->id;
-                }
-                ar=ar->sgte;
-                i++;
-            }
-            return nVertex()+1;
+    Tnodo addr = (nodo*)ubicaciones[id];
+    aux=addr;
+
+    if(aux->ady == NULL){
+        return nVertex()+1;
+    }
+
+    ar=aux->ady;
+    int i = 1;
+   
+    while(ar!=NULL){
+        if(i == aux->currentArista){
+            aux->currentArista+=1;
+            return ar->destino->id;
         }
-        else{
-            aux=aux->sgte;
-        }
+        ar=ar->sgte;
+
+        i++;
     }
     return nVertex()+1;
 }
+void BFS(Grafo *G,int nodo,int *cvert, int pintura, int* fobias_comunidad, int* auxiliar_nodos[]){
+    queue<int> q;
+    int w,z;
+    q.push(nodo);
+    
+    fobias_comunidad[G->getFobia(nodo,auxiliar_nodos)]+=1; // Aumentar al contador de fobias
+    G->setMark(nodo, pintura, auxiliar_nodos);
 
+    while(q.size() != 0){
+        z = q.front();
+        q.pop();
+        fobias_comunidad[G->getFobia(z,auxiliar_nodos)]+=1; // Aumentar al contador de fobias
+        G->setMark(z, pintura, auxiliar_nodos);
+        for(w= G->first(z,auxiliar_nodos); w< G->nVertex()+1; w = G->next(z,auxiliar_nodos)){
+            if(G->getMark(w,auxiliar_nodos) == -1){
+                (*cvert)++;
+                fobias_comunidad[G->getFobia(w,auxiliar_nodos)]+=1; // Aumentar al contador de fobias
+                G->setMark(w, pintura, auxiliar_nodos);
+                q.push(w);
+            }
+
+        }
+    }
+
+    
+}
 void DFS(Grafo *G,int aux1,int *w,int *cvert, int pintura, int* fobias_comunidad, int* auxiliar_nodos[]){
-    //cout << "Recibido el elemento "<< aux1 << endl;
-    *cvert = 0;
-    int cvert2 = 0;
     if(G->getMark(aux1,auxiliar_nodos) == -1){
-       // cout << aux1 << "?" << G->getFobia(aux1)<<"\n";
-        fobias_comunidad[G->getFobia(aux1)]+=1; // Aumentar al contador de fobias
+        fobias_comunidad[G->getFobia(aux1,auxiliar_nodos)]+=1; // Aumentar al contador de fobias
         G->setMark(aux1, pintura, auxiliar_nodos);
     }
-        
-    
-    for(*w= G->first(aux1); *w< G->nVertex()+1; *w = G->next(aux1,*cvert)){
-       // cout << "Iterando sobre "<< *w <<endl;
-        (*cvert)++; // Aumentamos los elementos recorridos
+    for(*w= G->first(aux1,auxiliar_nodos); *w< G->nVertex()+1; *w = G->next(aux1,auxiliar_nodos)){
         if(G->getMark(*w,auxiliar_nodos) == -1){
-             DFS(G,*w, w, &cvert2, pintura, fobias_comunidad, auxiliar_nodos);
+            (*cvert)++;
+            DFS(G,*w, w, cvert, pintura, fobias_comunidad, auxiliar_nodos);
         }
 
     }
@@ -439,25 +398,24 @@ int main(){
     int cantidad_comunidades = 0;
     int* comunidades = (int*) calloc(cantidad_datos, sizeof(int)); // Suficiente espacio para todas las comunidades, el peor caso seria que nadie tenga amigos
 
-    int w = 0; // Auxiliar para DFS
+    //int w = 0; // Auxiliar para DFS
     int i2 = 1;
     cout << "Contabilizando Fobias"<<"\n";
-    while(nodos_visitados <=cantidad_datos){
+    while(nodos_visitados <cantidad_datos){
         cout << "Buscando nodos no visitados"<<"\n";
+        cout << "Visitados: " << nodos_visitados << "de " << cantidad_datos<<endl;
         // Buscar Nodo no visitado
         while(G.getMark(i2,auxiliar_nodos) != -1){
             i2++;
         }
-
+        cout << "Encontrado nodo no visitado " << i2<<"\n";
 
         int* fobias_comunidad = (int*) calloc(10000, sizeof(int)); // Vamos guardando las veces que se ve una fobia
 
 
        
-        int dfs_visits = 0; 
-        cout << "Realizando DFS en"<< i2<<"\n";
-        DFS(&G,i2,&w,&dfs_visits,cantidad_comunidades,fobias_comunidad,auxiliar_nodos); 
-
+        int dfs_visits = 1; 
+        BFS(&G,i2,&dfs_visits,cantidad_comunidades,fobias_comunidad,auxiliar_nodos); 
         
 
         // Buscar la fobia que mas esta
@@ -482,7 +440,7 @@ int main(){
        // cout <<"FOBIA MAXIMA " << fobia_max<<"\n";
 
         cantidad_comunidades++;
-        nodos_visitados+=dfs_visits+1; // El 1 de la visita del nodo padre
+        nodos_visitados+=dfs_visits; // El 1 de la visita del nodo padre
 
     }
 
