@@ -21,7 +21,7 @@ typedef struct arista *Tarista; //Tipo Arista
 class Grafo
 {
 private:
-    Tnodo p;//puntero cabeza
+    Tnodo p,nextInsert;//puntero cabeza
     int nArcos, nVertices;
 public:
     Grafo();
@@ -48,10 +48,12 @@ Grafo::Grafo(){
     p = NULL;
     nArcos = 0;
     nVertices = 0;
+    nextInsert = 0;
 }
 Grafo::~Grafo(){
     Tnodo aux,next;
     aux=p;
+    
     next = NULL;
     // Grafo Vacio
     if(p==NULL){
@@ -73,25 +75,14 @@ void Grafo::insertar_nodo(int id,int fobia){
 // Verificar si hay nodos
     if(p==NULL){
         p = nuevo;
+        nextInsert = p;
     }
 // Buscar donde lo podemos insertar
     else{
-        int flag = false;
-        t = p;
-        while(t->sgte!=NULL){
-            if(t->sgte->id == id){
-                flag = true;
-            }
-            t = t->sgte;
-        }
-        if(flag == false && id != 0){
-            nVertices+=1;
-            t->sgte = nuevo;
-        }
-        else{
-            // delete(t);
-            delete(nuevo);
-        }
+        t = nextInsert;
+        nVertices+=1;
+        t->sgte = nuevo;
+        nextInsert = t->sgte;
     }
 }
 void Grafo::agrega_arista(Tnodo &aux, Tnodo &aux2, Tarista &nuevo){
@@ -437,14 +428,18 @@ int main(){
     cin >> cantidad_datos;
 
     // Agregar Nodos
+    cout << "Agregando nodos"<<"\n";
     i = 1;
     while(i <= cantidad_datos){
+        if(i%1000 == 0){
+            cout << i<<'\n';
+        }
+        
         cin >> aux1;
         G.insertar_nodo(i,aux1);
         i++;
     }
-
-
+    cout << "Agregando vertices"<<"\n";
     // Agregar Vertices
     cin >> cantidad_vertices;
     i = 0;
@@ -463,8 +458,9 @@ int main(){
 
     int w = 0; // Auxiliar para DFS
     int i2 = 1;
+    cout << "Contabilizando Fobias"<<"\n";
     while(nodos_visitados <=cantidad_datos){
-        
+        cout << "Buscando nodos no visitados"<<"\n";
         // Buscar Nodo no visitado
         while(G.getMark(i2) != -1){
             i2++;
@@ -476,6 +472,7 @@ int main(){
 
        
         int dfs_visits = 0; 
+        cout << "Realizando DFS en"<< i2<<"\n";
         DFS(&G,i2,&w,&dfs_visits,cantidad_comunidades,fobias_comunidad); 
 
         
@@ -506,7 +503,7 @@ int main(){
 
     }
 
-    
+    cout << "Mostrando salida"<<"\n";
     cout << cantidad_comunidades << '\n';
     // Liberamos el espacio que quedo en 0 antes de 
     comunidades = (int*) realloc(comunidades, cantidad_comunidades*sizeof(int));
@@ -516,72 +513,6 @@ int main(){
 
 
     free(comunidades);
-
-
-    //G.mostrar_grafo();
-
-
-
-
-   
-    // int N,
-    //         M,     // Cantidad de vuelos entre pares de fobiaes que tiene la compañía
-    //         Q,     // El número de consultas que se harán sobre el grafo
-    //         i,
-    //         aux1,
-    //         aux2;
-    // cin >> N;
-    // cin >> M;
-
-    // // Procesar
-    // // Agregar Nodos y Arcos
-    // i = 0;
-    // while(i < M){
-    //     cin >> aux1;
-    //     G.insertar_nodo(aux1);
-    //     cin >> aux2;
-    //     G.insertar_nodo(aux2);
-    //     G.setEdge(aux1,aux2);
-    //     i++;
-    // }
-    // cin >> Q;
-    // i = 0;
-    // int w;
-    // int cvert=0;
-    // // cout << G.nVertex();
-    // cout<<Q<<endl; // Primera Linea salida
-    // while(i < Q){
-    //     cin >> aux1; // Vertice a trabjar
-    //     // cout << "Elemento " << aux1 << endl;
-    //     // Buscar vertices no alcanzables desde aux1;
-    //     //vertices que llego desde aux1;
-    //     DFS(&G,aux1,&w,&cvert,aux1);
-
-    //     // G.mostrar_grafo();
-    //     cout << 'hola\n';
-
-    //     //recorrer grafo y ver si esta marcado;
-    //     int noalcanzables[G.nVertex()];
-    //     cvert = 0;
-    //     for (w=0; w<G.nVertex(); w++){
-    //         // cout << "Analizando : "<<G.getElement(w) << endl;
-    //         if (G.getMark(G.getElement(w))!=aux1 && G.getElement(w) != aux1){
-    //             noalcanzables[cvert] = G.getElement(w);
-    //             cvert++;
-    //         }
-    //     }
-    //     // G.mostrar_grafo();
-    //     cout << cvert<< " ";
-    //     qsort(noalcanzables, cvert, sizeof(int), compare);
-    //     for (w=0; w<cvert; w++){
-    //         if (G.getMark(w)!=Q){
-    //             cout<<noalcanzables[w]<<" ";
-    //         }
-    //     }
-    //     cout << endl;
-
-    //     i++;
-    // }
 
 
     G.~Grafo();
