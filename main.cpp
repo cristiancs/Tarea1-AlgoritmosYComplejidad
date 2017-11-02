@@ -397,7 +397,7 @@ int main(){
         while(G.getMark(i2,auxiliar_nodos) != -1){
             i2++;
         }
-        cout << "Encontrado nodo no visitado " << i2<<"\n";
+    //    cout << "Encontrado nodo no visitado " << i2<<"\n";
 
         int* fobias_comunidad = (int*) calloc(10000, sizeof(int)); // Vamos guardando las veces que se ve una fobia
 
