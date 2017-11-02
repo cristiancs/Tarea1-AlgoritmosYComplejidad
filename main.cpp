@@ -102,6 +102,7 @@ void Grafo::agrega_arista(Tnodo &aux, Tnodo &aux2, Tarista &nuevo){
         q=aux->ady->final;
         nuevo->destino=aux2;
         q->sgte=nuevo;
+        aux->ady->final = nuevo;
     }
     nArcos+=1;
 }
@@ -387,6 +388,7 @@ int main(){
 
     //int w = 0; // Auxiliar para DFS
     int i2 = 1;
+    //G.mostrar_grafo();
     //cout << "Contabilizando Fobias"<<"\n";
     while(nodos_visitados <cantidad_datos){
         //cout << "Buscando nodos no visitados"<<"\n";
@@ -395,7 +397,7 @@ int main(){
         while(G.getMark(i2,auxiliar_nodos) != -1){
             i2++;
         }
-        //cout << "Encontrado nodo no visitado " << i2<<"\n";
+        cout << "Encontrado nodo no visitado " << i2<<"\n";
 
         int* fobias_comunidad = (int*) calloc(10000, sizeof(int)); // Vamos guardando las veces que se ve una fobia
 
@@ -442,7 +444,7 @@ int main(){
     delete(auxiliar_nodos);
     free(comunidades);
 
-    //G.mostrar_grafo();
+    G.mostrar_grafo();
 
     G.~Grafo();
 
