@@ -444,7 +444,7 @@ int main(){
     delete(auxiliar_nodos);
     free(comunidades);
 
-    G.mostrar_grafo();
+    //G.mostrar_grafo();
 
     G.~Grafo();
 
