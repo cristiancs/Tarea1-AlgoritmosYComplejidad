@@ -1,0 +1,6 @@
+
+Cristian Navarrete, 201573549-2, Malla nueva, lógica principal de la solución
+
+Eliecer Zambrano, 201573540-9, Malla nueva, optimización de la solución
+
+Alejandro Sepúlveda, 201373544-4, Malla nueva, comentarios y refactorización del código
